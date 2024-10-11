@@ -26,15 +26,18 @@ class GameMapView(arcade.View):
         self.scroll_y = 0
         self.dragging = False
         self.last_mouse_position = None
+        self.mouse_x = 0
+        self.mouse_y = 0
         self.__load_textures()
         x_values = [tile_data['x'] for tile_data in map_data]
         y_values = [tile_data['y'] for tile_data in map_data]
         min_x = min(x_values)
-        self.max_x = max(x_values)
+        max_x = max(x_values)
         min_y = min(y_values)
-        self.max_y = max(y_values)
+        max_y = max(y_values)
         self.offset_x = -min_x
         self.offset_y = -min_y
+        self.max_y = max_y  # Stocker le maximum des Y
         for tile_data in map_data:
             tile = {}
             x = tile_data['x']
@@ -72,16 +75,36 @@ class GameMapView(arcade.View):
         y = tile['y'] + self.offset_y
         tile_width = texture.width
         tile_height = texture.height
+
+        # Inverser l'axe Y
         y_inverted = (self.max_y + self.offset_y) - y
 
         center_x = x * tile_width + tile_width / 2 + self.scroll_x
         center_y = y_inverted * tile_height + tile_height / 2 + self.scroll_y
+
+        # Dessiner la tuile
         arcade.draw_texture_rectangle(center_x, center_y, tile_width, tile_height, texture)
+
+        # Vérifier si la souris est sur cette tuile
+        mouse_x = self.mouse_x
+        mouse_y = self.mouse_y
+
+        # Calculer les limites de la tuile
+        left = center_x - tile_width / 2
+        right = center_x + tile_width / 2
+        bottom = center_y - tile_height / 2
+        top = center_y + tile_height / 2
+
+        # Vérifier si la position de la souris est dans les limites de la tuile
+        if left <= mouse_x <= right and bottom <= mouse_y <= top:
+            # Dessiner un overlay semi-transparent
+            arcade.draw_lrtb_rectangle_filled(left, right, top, bottom, (0, 0, 0, 100))
+
+        # Dessiner le contenu de la tuile s'il y en a
         if tile['data'] and tile['data'].get('content'):
             content_data = tile['data']['content']
             content_type = content_data['type']
             content_code = content_data['code']
-            # if content_type is different from 'monster' or 'resource', it will be 'workshop', 'bank', 'grand_exchange', 'tasks_master', discard it
             if content_type not in ['monster', 'resource']:
                 return
             content_texture = self.textures[content_type].get(content_code)
@@ -104,6 +127,10 @@ class GameMapView(arcade.View):
             self.dragging = False
 
     def on_mouse_motion(self, x, y, dx, dy):
+        # Mettre à jour la position de la souris
+        self.mouse_x = x
+        self.mouse_y = y
+
         if self.dragging and self.last_mouse_position is not None:
             self.scroll_x += dx
             self.scroll_y += dy
