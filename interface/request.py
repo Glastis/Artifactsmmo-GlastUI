@@ -14,7 +14,7 @@ def make_url(uri):
     url = f'{api.protocol}://{url}'
     return url
 
-def request(uri, method, data=None):
+def request(uri, method, data=None, return_all=False):
     url = make_url(uri)
     headers = {
         'Accept': 'application/json',
@@ -32,6 +32,8 @@ def request(uri, method, data=None):
     if response.status_code != 200:
         print(f"Request {url} failed: {response.status_code}, {response.text}")
         return None
+    if return_all:
+        return response
     data = response.json()
     return data['data']
 
@@ -43,4 +45,4 @@ def get(uri):
     return request(uri, "GET")
 
 def post_action(hero_name, action, data=None):
-    return post(f'{hero_name}/actions/{action}', data)
+    return post(f'{hero_name}/action/{action}', data)

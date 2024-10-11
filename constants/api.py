@@ -1,5 +1,5 @@
 protocol = "https"
-base_url = "api.artifactsmmo.com/my/"
+base_url = "api.artifactsmmo.com/"
 
 routes = {
     'hero': '/characters',
